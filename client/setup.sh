@@ -1,9 +1,9 @@
 #!/bin/bash
 
-# Iron Man Helmet - Client Setup Script
+# VisualAssistant - Client Setup Script
 
-echo "Iron Man Helmet Client Setup"
-echo "================================"
+echo "VisualAssistant Client Setup"
+echo "============================"
 
 # Check if Python 3 is installed
 if ! command -v python3 &> /dev/null; then

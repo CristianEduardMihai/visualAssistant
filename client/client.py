@@ -35,7 +35,7 @@ class IronManClient:
                 frames_per_buffer=config.CHUNK_SIZE
             )
             
-            print(f"🎤 Listening for wake words: {config.WAKE_WORDS}")
+            print(f"Listening for wake words: {config.WAKE_WORDS}")
             
         except Exception as e:
             print(f"Error setting up audio: {e}")
@@ -61,7 +61,7 @@ class IronManClient:
             
             keyword_index = self.porcupine.process(audio_frame)
             if keyword_index >= 0:
-                print(f"🔊 Wake word detected: {config.WAKE_WORDS[keyword_index]}")
+                print(f"Wake word detected: {config.WAKE_WORDS[keyword_index]}")
                 return True
                 
         except Exception as e:
@@ -129,7 +129,7 @@ class IronManClient:
             files = {'image': ('image.jpg', img_bytes, 'image/jpeg')}
             data = {'device': device, 'action': action}
             
-            print(f"📡 Sending to server: {device} -> {action}")
+            print(f"Sending to server: {device} -> {action}")
             response = requests.post(config.API_ENDPOINT, files=files, data=data, timeout=10)
             
             if response.status_code == 200:
@@ -146,7 +146,7 @@ class IronManClient:
     
     def run(self):
         """Main client loop"""
-        print("Iron Man Helmet Client Started!")
+        print("VisualAssistant Client Started!")
         print("Say a wake word followed by 'turn [device] on/off'")
         
         try:
