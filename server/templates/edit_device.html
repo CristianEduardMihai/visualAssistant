@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Device - VisualAssistant</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, rgb(243, 87, 168), rgb(123, 47, 242));
+            color: white;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+        
+        .card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 1rem;
+        }
+        
+        .form-group input::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: #ffd700;
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+        }
+        
+        .file-input {
+            width: 100%;
+            padding: 12px;
+            border: 2px dashed rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .file-input:hover {
+            border-color: #ffd700;
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .btn {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            font-size: 1rem;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s ease;
+            margin: 5px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 107, 107, 0.4);
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(45deg, #74b9ff, #0984e3);
+        }
+        
+        .btn-secondary:hover {
+            box-shadow: 0 5px 15px rgba(116, 185, 255, 0.4);
+        }
+        
+        .btn-danger {
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+        }
+        
+        .btn-small {
+            padding: 8px 15px;
+            font-size: 0.9rem;
+        }
+        
+        .alert {
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border-left: 4px solid;
+        }
+        
+        .alert-success {
+            background: rgba(39, 174, 96, 0.2);
+            border-color: #27ae60;
+        }
+        
+        .alert-error {
+            background: rgba(231, 76, 60, 0.2);
+            border-color: #e74c3c;
+        }
+        
+        .images-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .image-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .image-card img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+        
+        .image-filename {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            margin-bottom: 10px;
+            word-break: break-all;
+        }
+        
+        .section-title {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            color: #ffd700;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Edit Device: {{ device.name }}</h1>
+            <p>Manage device photos and settings</p>
+        </div>
+        
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ 'success' if category == 'success' else 'error' }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        
+        <!-- Device Name Section -->
+        <div class="card">
+            <h2 class="section-title">Device Name</h2>
+            <form method="POST" action="{{ url_for('update_device_name', device_name=device.name) }}">
+                <div class="form-group">
+                    <label for="new_name">Device Name</label>
+                    <input type="text" id="new_name" name="new_name" value="{{ device.name }}" required>
+                </div>
+                <button type="submit" class="btn">Update Name</button>
+            </form>
+        </div>
+        
+        <!-- Training Images Section -->
+        <div class="card">
+            <h2 class="section-title">Training Images ({{ device.image_count }} total)</h2>
+            
+            {% if device.images %}
+            <div class="images-grid">
+                {% for image in device.images %}
+                <div class="image-card">
+                    <img src="{{ url_for('device_images', device_name=device.name, filename=image) }}" 
+                         alt="{{ image }}" onerror="this.src='data:image/svg+xml,<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; width=&quot;200&quot; height=&quot;150&quot; viewBox=&quot;0 0 200 150&quot;><rect width=&quot;200&quot; height=&quot;150&quot; fill=&quot;%23666&quot;/><text x=&quot;100&quot; y=&quot;75&quot; text-anchor=&quot;middle&quot; dy=&quot;.3em&quot; fill=&quot;white&quot;>Image not found</text></svg>'">
+                    <div class="image-filename">{{ image }}</div>
+                    <form method="POST" action="{{ url_for('delete_device_image', device_name=device.name, image_filename=image) }}" 
+                          onsubmit="return confirm('Are you sure you want to delete this image?')" style="display: inline;">
+                        <button type="submit" class="btn btn-danger btn-small">Delete</button>
+                    </form>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p>No training images found for this device.</p>
+            {% endif %}
+        </div>
+        
+        <!-- Add New Images Section -->
+        <div class="card">
+            <h2 class="section-title">Add New Images</h2>
+            <form method="POST" action="{{ url_for('add_device_images', device_name=device.name) }}" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label for="new_images">Select New Images</label>
+                    <input type="file" id="new_images" name="new_images" multiple accept="image/*" class="file-input">
+                </div>
+                <button type="submit" class="btn">Add Images</button>
+            </form>
+        </div>
+        
+        <!-- Navigation -->
+        <div class="card">
+            <a href="{{ url_for('index') }}" class="btn btn-secondary">Back to Dashboard</a>
+            <form method="POST" action="{{ url_for('delete_device', device_name=device.name) }}" 
+                  onsubmit="return confirm('Are you sure you want to delete this entire device and all its images?')" style="display: inline;">
+                <button type="submit" class="btn btn-danger">Delete Entire Device</button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

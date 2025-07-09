@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Device - VisualAssistant</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, rgb(243, 87, 168), rgb(123, 47, 242));
+            color: white;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+        
+        .card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 1rem;
+        }
+        
+        .form-group input::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+        
+        .form-group input:focus {
+            outline: none;
+            border-color: #ffd700;
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+        }
+        
+        .file-input-container {
+            position: relative;
+            display: inline-block;
+            width: 100%;
+        }
+        
+        .file-input {
+            width: 100%;
+            padding: 12px;
+            border: 2px dashed rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .file-input:hover {
+            border-color: #ffd700;
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .btn {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s ease;
+            margin: 5px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 107, 107, 0.4);
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(45deg, #74b9ff, #0984e3);
+        }
+        
+        .btn-secondary:hover {
+            box-shadow: 0 5px 15px rgba(116, 185, 255, 0.4);
+        }
+        
+        .alert {
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border-left: 4px solid;
+        }
+        
+        .alert-error {
+            background: rgba(231, 76, 60, 0.2);
+            border-color: #e74c3c;
+        }
+        
+        .tips {
+            background: rgba(255, 215, 0, 0.1);
+            border-left: 4px solid #ffd700;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        
+        .tips h3 {
+            color: #ffd700;
+            margin-bottom: 10px;
+        }
+        
+        .tips ul {
+            padding-left: 20px;
+            line-height: 1.6;
+        }
+        
+        #preview-container {
+            display: none;
+            margin-top: 20px;
+        }
+        
+        .preview-images {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .preview-image {
+            width: 120px;
+            height: 120px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Add New Device</h1>
+            <p>Train the AI to recognize your smart home devices</p>
+        </div>
+        
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-error">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        
+        <div class="card">
+            <form method="POST" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label for="device_name">Device Name</label>
+                    <input type="text" id="device_name" name="device_name" 
+                           placeholder="e.g., Living Room TV, Kitchen Lights, Bedroom Fan" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="device_images">Device Photos (5-6 recommended)</label>
+                    <input type="file" id="device_images" name="device_images" 
+                           multiple accept="image/*" class="file-input" required>
+                    
+                    <div id="preview-container">
+                        <h4>Selected Images:</h4>
+                        <div id="preview-images" class="preview-images"></div>
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn">Add Device</button>
+                <a href="{{ url_for('index') }}" class="btn btn-secondary">Back to Dashboard</a>
+            </form>
+        </div>
+        
+        <div class="tips">
+            <h3>Tips for Better Recognition</h3>
+            <ul>
+                <li>Take photos from different angles (front, side, close-up)</li>
+                <li>Include photos in different lighting conditions</li>
+                <li>Make sure the device is clearly visible in each photo</li>
+                <li>Avoid blurry or too dark images</li>
+                <li>Include some surrounding context but keep the device as the main subject</li>
+                <li>5-6 good quality photos usually work better than many poor quality ones</li>
+            </ul>
+        </div>
+    </div>
+    
+    <script>
+        // Image preview functionality
+        document.getElementById('device_images').addEventListener('change', function(e) {
+            const files = e.target.files;
+            const previewContainer = document.getElementById('preview-container');
+            const previewImages = document.getElementById('preview-images');
+            
+            if (files.length > 0) {
+                previewContainer.style.display = 'block';
+                previewImages.innerHTML = '';
+                
+                for (let i = 0; i < files.length; i++) {
+                    const file = files[i];
+                    const reader = new FileReader();
+                    
+                    reader.onload = function(e) {
+                        const img = document.createElement('img');
+                        img.src = e.target.result;
+                        img.className = 'preview-image';
+                        img.alt = file.name;
+                        previewImages.appendChild(img);
+                    };
+                    
+                    reader.readAsDataURL(file);
+                }
+            } else {
+                previewContainer.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>

@@ -9,38 +9,40 @@ import time
 from PIL import Image
 import config
 
-class IronManClient:
+# Global Porcupine setup (like in max_voice.py)
+print("Setting up Porcupine...")
+try:
+    keyword_paths = ['Hey-Max_en_linux_v3_0_0.ppn']
+    
+    porcupine_handle = pvporcupine.create(
+        access_key=config.PORCUPINE_ACCESS_KEY,
+        keyword_paths=keyword_paths
+    )
+    print("Porcupine created successfully!")
+    
+    pa = pyaudio.PyAudio()
+    audio_stream = pa.open(
+        rate=porcupine_handle.sample_rate,
+        channels=1,
+        format=pyaudio.paInt16,
+        input=True,
+        frames_per_buffer=porcupine_handle.frame_length
+    )
+    print("Audio stream opened successfully!")
+    print(f"Sample rate: {porcupine_handle.sample_rate}, Frame length: {porcupine_handle.frame_length}")
+    
+except Exception as e:
+    print(f"Error setting up Porcupine: {e}")
+    porcupine_handle = None
+    audio_stream = None
+    pa = None
+
+class VisualAssistantClient:
     def __init__(self):
-        self.porcupine = None
-        self.audio_stream = None
         self.recognizer = sr.Recognizer()
         self.microphone = sr.Microphone()
         self.camera = cv2.VideoCapture(config.CAMERA_INDEX)
-        self.setup_audio()
         
-    def setup_audio(self):
-        """Initialize Porcupine wake word detection and audio stream"""
-        try:
-            self.porcupine = pvporcupine.create(
-                access_key=config.PORCUPINE_ACCESS_KEY,
-                keywords=config.WAKE_WORDS
-            )
-            
-            audio = pyaudio.PyAudio()
-            self.audio_stream = audio.open(
-                format=pyaudio.paInt16,
-                channels=1,
-                rate=config.SAMPLE_RATE,
-                input=True,
-                frames_per_buffer=config.CHUNK_SIZE
-            )
-            
-            print(f"Listening for wake words: {config.WAKE_WORDS}")
-            
-        except Exception as e:
-            print(f"Error setting up audio: {e}")
-            print("Make sure you have a valid Porcupine access key in config.py")
-    
     def capture_image(self):
         """Capture image from camera"""
         ret, frame = self.camera.read()
@@ -51,17 +53,21 @@ class IronManClient:
         return None
     
     def listen_for_wake_word(self):
-        """Listen for wake word using Porcupine"""
-        if not self.porcupine or not self.audio_stream:
+        """Listen for wake word using Porcupine (exactly like max_voice.py)"""
+        global porcupine_handle, audio_stream
+        
+        if not porcupine_handle or not audio_stream:
             return False
             
         try:
-            audio_data = self.audio_stream.read(config.CHUNK_SIZE, exception_on_overflow=False)
-            audio_frame = struct.unpack_from("h" * config.CHUNK_SIZE, audio_data)
+            # Exact same pattern as max_voice.py
+            pcm = audio_stream.read(porcupine_handle.frame_length)
+            pcm = struct.unpack_from("h" * porcupine_handle.frame_length, pcm)
             
-            keyword_index = self.porcupine.process(audio_frame)
+            keyword_index = porcupine_handle.process(pcm)
             if keyword_index >= 0:
-                print(f"Wake word detected: {config.WAKE_WORDS[keyword_index]}")
+                print("Wake word detected!")
+                print("Say 'on' or 'off' now...")
                 return True
                 
         except Exception as e:
@@ -92,32 +98,19 @@ class IronManClient:
             return None
     
     def parse_command(self, command):
-        """Parse command to extract device and action"""
+        """Parse command to extract action - just look for 'on' or 'off'"""
         if not command:
-            return None, None
+            return None
             
-        # Simple command parsing - look for "turn [device] on/off"
-        words = command.split()
+        # Simple check for "on" or "off" anywhere in the command
+        command_lower = command.lower().strip()
         
-        if "turn" in words:
-            turn_index = words.index("turn")
+        if "on" in command_lower:
+            return "on"
+        elif "off" in command_lower:
+            return "off"
             
-            # Look for "on" or "off"
-            action = None
-            if "on" in words:
-                action = "on"
-                action_index = words.index("on")
-            elif "off" in words:
-                action = "off"
-                action_index = words.index("off")
-            
-            if action and turn_index < action_index:
-                # Extract device name between "turn" and "on/off"
-                device_words = words[turn_index + 1:action_index]
-                device = " ".join(device_words).strip()
-                return device, action
-        
-        return None, None
+        return None
     
     def send_to_server(self, image, device, action):
         """Send image and command to server"""
@@ -147,7 +140,8 @@ class IronManClient:
     def run(self):
         """Main client loop"""
         print("VisualAssistant Client Started!")
-        print("Say a wake word followed by 'turn [device] on/off'")
+        print("Say 'Hey Max' followed by 'on' or 'off'")
+        print("Listening...")
         
         try:
             while True:
@@ -157,18 +151,18 @@ class IronManClient:
                     
                     # Listen for command
                     command = self.listen_for_command()
-                    device, action = self.parse_command(command)
+                    action = self.parse_command(command)
                     
-                    if device and action:
+                    if action:
                         # Capture image
                         image = self.capture_image()
                         if image is not None:
-                            # Send to server
-                            self.send_to_server(image, device, action)
+                            # Send to server - device will be recognized from image
+                            self.send_to_server(image, "visual_target", action)
                         else:
                             print("Failed to capture image")
                     else:
-                        print("Could not parse command. Try: 'turn [device] on/off'")
+                        print("Could not parse command. Try: 'on' or 'off'")
 
                 time.sleep(0.1)  # Small delay to prevent excessive CPU usage. Don't freeze my laptop :/
                 
@@ -178,13 +172,17 @@ class IronManClient:
     
     def cleanup(self):
         """Clean up resources"""
-        if self.audio_stream:
-            self.audio_stream.close()
-        if self.porcupine:
-            self.porcupine.delete()
+        global audio_stream, pa, porcupine_handle
+        
+        if audio_stream:
+            audio_stream.close()
+        if pa:
+            pa.terminate()
+        if porcupine_handle:
+            porcupine_handle.delete()
         if self.camera:
             self.camera.release()
 
 if __name__ == "__main__":
-    client = IronManClient()
+    client = VisualAssistantClient()
     client.run()

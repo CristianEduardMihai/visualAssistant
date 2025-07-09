@@ -1,8 +1,8 @@
 #!/bin/bash
 
-# VisualAssistant - Client Setup Script
+# VisualAssistant - Server Setup Script
 
-echo "VisualAssistant Client Setup"
+echo "VisualAssistant Server Setup"
 echo "============================"
 
 # Check if Python 3 is installed
@@ -11,12 +11,12 @@ if ! command -v python3 &> /dev/null; then
     exit 1
 fi
 
-echo "Python 3 found: $(python3 --version)"
-
-# Install system dependencies for audio
+# Install APT packages
 echo "Installing system dependencies..."
-sudo apt update
-sudo apt install -y portaudio19-dev python3-pyaudio
+sudo apt-get update
+sudo apt-get install -y python3-venv python3-pip
+#sudo apt-get install python3-distutils
+
 
 # Create virtual environment
 echo "Creating virtual environment..."
@@ -31,14 +31,11 @@ echo "Installing requirements..."
 pip install -r requirements.txt
 
 echo ""
-echo "Client setup complete!"
+echo "Server setup complete!"
 echo ""
-echo "IMPORTANT: Configure your settings in config.py:"
-echo "   - Set SERVER_IP to your server's IP address"
-echo "   - Get a Porcupine access key from https://console.picovoice.ai/"
-echo "   - Set PORCUPINE_ACCESS_KEY in config.py"
-echo ""
-echo "To run the client:"
-echo "   cd client"
+echo "To run the server:"
+echo "   cd server"
 echo "   source .venv/bin/activate"
-echo "   python3 client.py"
+echo "   python3 server.py"
+echo ""
+echo "The web UI will be available at: http://localhost:5000"
